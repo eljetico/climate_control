@@ -17,10 +17,12 @@ module ClimateControl
       end
 
       @semaphore.synchronize do
-        @owner = Thread.current
-        yield if block_given?
-      ensure
-        @owner = nil
+        begin
+          @owner = Thread.current
+          yield if block_given?
+        ensure
+          @owner = nil
+        end
       end
     end
 

@@ -8,12 +8,14 @@ module ClimateControl
 
     def process
       @env.synchronize do
-        prepare_environment_for_block
-        run_block
-      ensure
-        cache_environment_after_block
-        delete_keys_that_do_not_belong
-        revert_changed_keys
+        begin
+          prepare_environment_for_block
+          run_block
+        ensure
+          cache_environment_after_block
+          delete_keys_that_do_not_belong
+          revert_changed_keys
+        end
       end
     end
 
@@ -31,10 +33,12 @@ module ClimateControl
 
     def copy_overrides_to_environment
       @environment_overrides.each do |key, value|
-        @env[key] = value
-      rescue TypeError => e
-        raise UnassignableValueError,
-          "attempted to assign #{value} to #{key} but failed (#{e.message})"
+        begin
+          @env[key] = value
+        rescue TypeError => e
+          raise UnassignableValueError,
+            "attempted to assign #{value} to #{key} but failed (#{e.message})"
+        end
       end
     end
 
